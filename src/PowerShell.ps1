@@ -104,6 +104,9 @@ function prompt {
 	}
 	Write-Prompt $currentPath -Color $EBPromptSettings.PathColor;
 
+	# Add compatibility with posh-git
+	if (Get-Command Write-VcsStatus -ErrorAction SilentlyContinue) { Write-VcsStatus; }
+
 	$promptSuffix = $EBPromptSettings.Suffix;
 	$promptSuffixEndPadding = 0;
 	if (!$promptSuffix) {
