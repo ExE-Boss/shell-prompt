@@ -114,7 +114,15 @@ function prompt {
 	$result += Write-Prompt $promptPrefix -Color $promptColor -Pad $true;
 
 	if ($EBPromptSettings.Host) {
-		$promptHost = $EBPromptSettings.Host.replace("\u", $env:username).replace("\h", $env:computername);
+		$username = $env:USERNAME;
+		if ($IsLinux) {
+			$username = $env:USER;
+		}
+		$pcname = $env:COMPUTERNAME;
+		if ($IsLinux) {
+			$pcname = $env:NAME;
+		}
+		$promptHost = $EBPromptSettings.Host.replace("\u", $username).replace("\h", $pcname);
 		$result += Write-Prompt $promptHost -Color $EBPromptSettings.HostColor -Pad $true;
 	}
 
