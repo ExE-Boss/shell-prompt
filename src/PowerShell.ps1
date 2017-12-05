@@ -33,6 +33,7 @@ function Write-Prompt {
 		[Boolean]	$Pad	= $False
 	);
 
+	$result = "";
 	$text	= $Text;
 	$textPad	= 0;
 	$written	= $false;
@@ -42,35 +43,79 @@ function Write-Prompt {
 		$textPad	-= $text.Length;
 	}
 
-	if ($Color) {
-		try {
-			Write-Host $text -NoNewline -ForegroundColor $Color;
-			$written = $true;
-		} catch {}
-	}
+	if (($PSVersionTable.PSVersion -ge 5.1) -and ($Host.UI.SupportsVirtualTerminal)) {
+		function ColorToANSI {
+			param (
+				$Color = $args[0]
+			);
 
-	if (!$written) {
-		Write-Host $text -NoNewline;
-	}
-	
-	if ($Pad) {
-		Write-Host " ".PadRight($textPad, " ") -NoNewline;
+			switch ($Color) {
+				"Black"	{ return "$([char]0x1b)[0;30m"	}
+				"DarkRed"	{ return "$([char]0x1b)[0;31m"	}
+				"DarkGreen"	{ return "$([char]0x1b)[0;32m"	}
+				"DarkYellow"	{ return "$([char]0x1b)[0;33m"	}
+				"DarkBlue"	{ return "$([char]0x1b)[0;34m"	}
+				"DarkMagenta"	{ return "$([char]0x1b)[0;35m"	}
+				"DarkCyan"	{ return "$([char]0x1b)[0;36m"	}
+				"DarkGray"	{ return "$([char]0x1b)[0;37m"	}
+				"Gray"	{ return "$([char]0x1b)[1;30m"	}
+				"Red"	{ return "$([char]0x1b)[1;31m"	}
+				"Green"	{ return "$([char]0x1b)[1;32m"	}
+				"Yellow"	{ return "$([char]0x1b)[1;33m"	}
+				"Blue"	{ return "$([char]0x1b)[1;34m"	}
+				"Magenta"	{ return "$([char]0x1b)[1;35m"	}
+				"Cyan"	{ return "$([char]0x1b)[1;36m"	}
+				"Reset"	{ return "$([char]0x1b)[39;49m"	}
+				default	{ return "$([char]0x1b)[1;37m"	}
+			}
+		}
+
+		if ($Color) {
+			$result = (ColorToANSI $Color) + $text + (ColorToANSI "Reset");
+		} else {
+			$result = $text;
+		}
+		if ($Pad) {
+			$result += " ".PadRight($textPad, " ");
+		}
+		return $result;
+	} else {
+		if ($Color) {
+			try {
+				Write-Host $text -NoNewline -ForegroundColor $Color;
+				$written = $true;
+			} catch {}
+		}
+
+		if (!$written) {
+			Write-Host $text -NoNewline;
+		}
+
+		if ($Pad) {
+			Write-Host " ".PadRight($textPad, " ") -NoNewline;
+		}
+		return "";
 	}
 }
 
 function prompt {
 	$origLastExitCode = $global:LASTEXITCODE;
+	$result = "";
 
 	# Display default prompt prefix.
-	$promptPrefix = "PS ";
+	$promptPrefix	= "PS ";
+	$promptColor	= "White";
 	if ($EBPromptSettings.Prefix) {
 		$promptPrefix = $EBPromptSettings.Prefix;
 	}
-	Write-Prompt $promptPrefix -Color $EBPromptSettings.PrefixColor -Pad $true;
+	if ($EBPromptSettings.PrefixColor) {
+		$promptColor = $EBPromptSettings.PrefixColor;
+	}
+	$result += Write-Prompt $promptPrefix -Color $promptColor -Pad $true;
 
 	if ($EBPromptSettings.Host) {
 		$promptHost = $EBPromptSettings.Host.replace("\u", $env:username).replace("\h", $env:computername);
-		Write-Prompt $promptHost -Color $EBPromptSettings.HostColor -Pad $true;
+		$result += Write-Prompt $promptHost -Color $EBPromptSettings.HostColor -Pad $true;
 	}
 
 	$currentPath = $ExecutionContext.SessionState.Path.CurrentLocation.ToString();
@@ -102,10 +147,14 @@ function prompt {
 			$currentPath = $currentPath.Replace('\', '/');
 		}
 	}
-	Write-Prompt $currentPath -Color $EBPromptSettings.PathColor;
+	$result += Write-Prompt $currentPath -Color $EBPromptSettings.PathColor;
 
 	# Add compatibility with posh-git
-	if (Get-Command Write-VcsStatus -ErrorAction SilentlyContinue) { Write-VcsStatus; }
+	if (Get-Command Write-VcsStatus -ErrorAction SilentlyContinue) {
+		Write-Host $result -NoNewline;
+		Write-VcsStatus;
+		$result = "";
+	}
 
 	$promptSuffix = $EBPromptSettings.Suffix;
 	$promptSuffixEndPadding = 0;
@@ -116,9 +165,9 @@ function prompt {
 		$promptSuffix	= $promptSuffix.TrimEnd();
 		$promptSuffixEndPadding	-= $promptSuffix.Length;
 	}
-	Write-Prompt $promptSuffix -Color $EBPromptSettings.SuffixColor;
+	$result += Write-Prompt $promptSuffix -Color $EBPromptSettings.SuffixColor;
 
 	$padding = " ".PadRight($promptSuffixEndPadding, " ");
-	$global:LASTEXITCODE = $origLastExitCode
-	return $padding;
+	$global:LASTEXITCODE = $origLastExitCode;
+	return $result + $padding;
 }
