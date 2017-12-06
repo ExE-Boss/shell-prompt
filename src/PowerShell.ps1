@@ -26,79 +26,79 @@ try { $EBPromptSettings.Add("PrefixColor",	$null);	} catch {}
 try { $EBPromptSettings.Add("Suffix",	$null);	} catch {}
 try { $EBPromptSettings.Add("SuffixColor",	$null);	} catch {}
 
-function Write-Prompt {
-	param(
-		[String]	$Text	= $args[0],
-		[String]	$Color	= "",
-		[Boolean]	$Pad	= $False
-	);
-
-	$result = "";
-	$text	= $Text;
-	$textPad	= 0;
-	$written	= $false;
-	if ($Pad) {
-		$textPad	= $text.Length;
-		$text	= $text.TrimEnd();
-		$textPad	-= $text.Length;
-	}
-
-	if (($PSVersionTable.PSVersion -ge 5.1) -and ($Host.UI.SupportsVirtualTerminal)) {
-		function ColorToANSI {
-			param (
-				$Color = $args[0]
-			);
-
-			switch ($Color) {
-				"Black"	{ return "$([char]0x1b)[0;30m"	}
-				"DarkRed"	{ return "$([char]0x1b)[0;31m"	}
-				"DarkGreen"	{ return "$([char]0x1b)[0;32m"	}
-				"DarkYellow"	{ return "$([char]0x1b)[0;33m"	}
-				"DarkBlue"	{ return "$([char]0x1b)[0;34m"	}
-				"DarkMagenta"	{ return "$([char]0x1b)[0;35m"	}
-				"DarkCyan"	{ return "$([char]0x1b)[0;36m"	}
-				"DarkGray"	{ return "$([char]0x1b)[0;37m"	}
-				"Gray"	{ return "$([char]0x1b)[1;30m"	}
-				"Red"	{ return "$([char]0x1b)[1;31m"	}
-				"Green"	{ return "$([char]0x1b)[1;32m"	}
-				"Yellow"	{ return "$([char]0x1b)[1;33m"	}
-				"Blue"	{ return "$([char]0x1b)[1;34m"	}
-				"Magenta"	{ return "$([char]0x1b)[1;35m"	}
-				"Cyan"	{ return "$([char]0x1b)[1;36m"	}
-				"Reset"	{ return "$([char]0x1b)[39;49m"	}
-				default	{ return "$([char]0x1b)[1;37m"	}
-			}
-		}
-
-		if ($Color) {
-			$result = (ColorToANSI $Color) + $text + (ColorToANSI "Reset");
-		} else {
-			$result = $text;
-		}
-		if ($Pad) {
-			$result += " ".PadRight($textPad, " ");
-		}
-		return $result;
-	} else {
-		if ($Color) {
-			try {
-				Write-Host $text -NoNewline -ForegroundColor $Color;
-				$written = $true;
-			} catch {}
-		}
-
-		if (!$written) {
-			Write-Host $text -NoNewline;
-		}
-
-		if ($Pad) {
-			Write-Host " ".PadRight($textPad, " ") -NoNewline;
-		}
-		return "";
-	}
-}
-
 function prompt {
+	function Write-Prompt {
+		param(
+			[String]	$Text	= $args[0],
+			[String]	$Color	= "",
+			[Boolean]	$Pad	= $False
+		);
+
+		$result = "";
+		$text	= $Text;
+		$textPad	= 0;
+		$written	= $false;
+		if ($Pad) {
+			$textPad	= $text.Length;
+			$text	= $text.TrimEnd();
+			$textPad	-= $text.Length;
+		}
+
+		if (($PSVersionTable.PSVersion -ge 5.1) -and ($Host.UI.SupportsVirtualTerminal)) {
+			function ColorToANSI {
+				param (
+					$Color = $args[0]
+				);
+
+				switch ($Color) {
+					"Black"	{ return "$([char]0x1b)[0;30m"	}
+					"DarkRed"	{ return "$([char]0x1b)[0;31m"	}
+					"DarkGreen"	{ return "$([char]0x1b)[0;32m"	}
+					"DarkYellow"	{ return "$([char]0x1b)[0;33m"	}
+					"DarkBlue"	{ return "$([char]0x1b)[0;34m"	}
+					"DarkMagenta"	{ return "$([char]0x1b)[0;35m"	}
+					"DarkCyan"	{ return "$([char]0x1b)[0;36m"	}
+					"DarkGray"	{ return "$([char]0x1b)[0;37m"	}
+					"Gray"	{ return "$([char]0x1b)[1;30m"	}
+					"Red"	{ return "$([char]0x1b)[1;31m"	}
+					"Green"	{ return "$([char]0x1b)[1;32m"	}
+					"Yellow"	{ return "$([char]0x1b)[1;33m"	}
+					"Blue"	{ return "$([char]0x1b)[1;34m"	}
+					"Magenta"	{ return "$([char]0x1b)[1;35m"	}
+					"Cyan"	{ return "$([char]0x1b)[1;36m"	}
+					"Reset"	{ return "$([char]0x1b)[39;49m"	}
+					default	{ return "$([char]0x1b)[1;37m"	}
+				}
+			}
+
+			if ($Color) {
+				$result = (ColorToANSI $Color) + $text + (ColorToANSI "Reset");
+			} else {
+				$result = $text;
+			}
+			if ($Pad) {
+				$result += " ".PadRight($textPad, " ");
+			}
+			return $result;
+		} else {
+			if ($Color) {
+				try {
+					Write-Host $text -NoNewline -ForegroundColor $Color;
+					$written = $true;
+				} catch {}
+			}
+
+			if (!$written) {
+				Write-Host $text -NoNewline;
+			}
+
+			if ($Pad) {
+				Write-Host " ".PadRight($textPad, " ") -NoNewline;
+			}
+			return "";
+		}
+	}
+
 	$origLastExitCode = $global:LASTEXITCODE;
 	$result = "";
 
