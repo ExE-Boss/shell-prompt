@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# If id command returns zero, you’ve got root access.
+# If id command returns zero, we’ve got root access.
 if [ $(id -u) -eq 0 ]; then
 	PS1="\[\e[1;31m\]"
 else
-	PS1="\[\e[1;37m\]"
+	PS1="\[\e[m\]"
 fi
-PS1="${PS1}bash \[\e[1;32m\]\u@\h \[\e[1;34m\]\w\[\e[m\]> "
+PS1="${PS1}bash \[\e[1;32m\]\u@\h \[\e[1;34m\]\w\[\e[39;49m\]> "

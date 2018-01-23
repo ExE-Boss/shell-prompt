@@ -30,8 +30,8 @@ function prompt {
 	function Write-Prompt {
 		param(
 			[String]	$Text	= $args[0],
-			[String]	$Color	= "",
-			[Boolean]	$Pad	= $False
+			[String]	$Color	= $args[1] -or "",
+			[Boolean]	$Pad	= $args[2] -or $False
 		);
 
 		$result = "";
@@ -66,8 +66,9 @@ function prompt {
 					"Blue"	{ return "$([char]0x1b)[1;34m"	}
 					"Magenta"	{ return "$([char]0x1b)[1;35m"	}
 					"Cyan"	{ return "$([char]0x1b)[1;36m"	}
+					"White"	{ return "$([char]0x1b)[1;37m"	}
 					"Reset"	{ return "$([char]0x1b)[39;49m"	}
-					default	{ return "$([char]0x1b)[1;37m"	}
+					default	{ return "$([char]0x1b)[m"	}
 				}
 			}
 
@@ -104,14 +105,14 @@ function prompt {
 
 	# Display default prompt prefix.
 	$promptPrefix	= "PS ";
-	$promptColor	= "White";
+	$promptColor	= $null;
 	if ($EBPromptSettings.Prefix) {
 		$promptPrefix = $EBPromptSettings.Prefix;
 	}
 	if ($EBPromptSettings.PrefixColor) {
 		$promptColor = $EBPromptSettings.PrefixColor;
 	}
-	$result += Write-Prompt $promptPrefix -Color $promptColor -Pad $true;
+	$result += Write-Prompt $promptPrefix $promptColor $true;
 
 	if ($EBPromptSettings.Host) {
 		$username = $env:USERNAME;
@@ -123,7 +124,7 @@ function prompt {
 			$pcname = $env:NAME;
 		}
 		$promptHost = $EBPromptSettings.Host.replace("\u", $username).replace("\h", $pcname);
-		$result += Write-Prompt $promptHost -Color $EBPromptSettings.HostColor -Pad $true;
+		$result += Write-Prompt $promptHost $EBPromptSettings.HostColor $true;
 	}
 
 	$currentPath = $ExecutionContext.SessionState.Path.CurrentLocation.ToString();
@@ -155,7 +156,7 @@ function prompt {
 			$currentPath = $currentPath.Replace('\', '/');
 		}
 	}
-	$result += Write-Prompt $currentPath -Color $EBPromptSettings.PathColor;
+	$result += Write-Prompt $currentPath $EBPromptSettings.PathColor;
 
 	# Add compatibility with posh-git
 	if (Get-Command Write-VcsStatus -ErrorAction SilentlyContinue) {
@@ -173,7 +174,7 @@ function prompt {
 		$promptSuffix	= $promptSuffix.TrimEnd();
 		$promptSuffixEndPadding	-= $promptSuffix.Length;
 	}
-	$result += Write-Prompt $promptSuffix -Color $EBPromptSettings.SuffixColor;
+	$result += Write-Prompt $promptSuffix $EBPromptSettings.SuffixColor;
 
 	$padding = " ".PadRight($promptSuffixEndPadding, " ");
 	$global:LASTEXITCODE = $origLastExitCode;
