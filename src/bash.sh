@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # ExE Boss’s Shell Prompt <https://github.com/ExE-Boss/shell-prompt>
 # Copyright (C) 2017 ExE Boss
 #
@@ -21,4 +21,9 @@ if [ $(id -u) -eq 0 ]; then
 else
 	PS1="\[\e[m\]"
 fi
-PS1="${PS1}bash \[\e[1;32m\]\u@\h \[\e[1;34m\]\w\[\e[39;49m\]> "
+if (echo "$0" | grep -q '^-'); then
+	PS1+=$(echo "$0" | tail -c +2)
+else
+	PS1+=$0
+fi
+PS1+=" \[\e[1;32m\]\u@\h \[\e[1;34m\]\w\[\e[39;49m\]> "
