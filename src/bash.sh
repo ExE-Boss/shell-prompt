@@ -21,9 +21,5 @@ if [ $(id -u) -eq 0 ]; then
 else
 	PS1="\[\e[m\]"
 fi
-if (echo "$0" | grep -q '^-'); then
-	PS1+=$(echo "$0" | tail -c +2)
-else
-	PS1+=$0
-fi
-PS1+=" \[\e[1;32m\]\u@\h \[\e[1;34m\]\w\[\e[39;49m\]> "
+PS1="$PS1$(ps -p $$ | awk '/^[ \t]*[0-9]/{print($4)}')"
+PS1="$PS1 \[\e[1;32m\]\u@\h \[\e[1;34m\]\w\[\e[m\]> "
