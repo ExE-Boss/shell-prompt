@@ -26,6 +26,10 @@ try { $EBPromptSettings.Add("PrefixColor",	$null);	} catch {}
 try { $EBPromptSettings.Add("Suffix",	$null);	} catch {}
 try { $EBPromptSettings.Add("SuffixColor",	$null);	} catch {}
 
+# Set the defaults to the console configuration
+try { $EBPromptSettings.Add("ForegroundColor",	[console]::ForegroundColor);	} catch {}
+try { $EBPromptSettings.Add("BackgroundColor",	[console]::BackgroundColor);	} catch {}
+
 function prompt {
 	function Write-Prompt {
 		param(
@@ -99,6 +103,10 @@ function prompt {
 			return "";
 		}
 	}
+
+	# Workaround some colour related bollocks
+	[console]::ForegroundColor	= $EBPromptSettings.ForegroundColor
+	[console]::BackgroundColor	= $EBPromptSettings.BackgroundColor
 
 	$origLastExitCode = $global:LASTEXITCODE;
 	$result = "";
