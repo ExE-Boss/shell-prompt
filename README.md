@@ -4,3 +4,8 @@ Shell Prompt
 ============
 
 My own custom shell prompt.
+
+Installation Instructions
+-------------------------
+
+Located in the [docs/](docs/install/readme.md) direcotry.
