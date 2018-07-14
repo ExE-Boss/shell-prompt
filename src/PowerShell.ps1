@@ -104,7 +104,10 @@ function prompt {
 		}
 	}
 
-	# Workaround some colour related bollocks
+	# Workaround some colour related issues that tend to happen when using
+	# certain command‑line applications (looking at you, yarn), which don’t
+	# correctly reset the prompt colours after they’re done printing to the
+	# console, as bash does this automatically, but PowerShell doesn’t.
 	[console]::ForegroundColor	= $EBPromptSettings.ForegroundColor
 	[console]::BackgroundColor	= $EBPromptSettings.BackgroundColor
 
@@ -167,7 +170,10 @@ function prompt {
 	$result += Write-Prompt $currentPath $EBPromptSettings.PathColor;
 
 	# Add compatibility with posh-git
-	if (Get-Command Write-VcsStatus -ErrorAction SilentlyContinue) {
+	if ((Get-Module posh-git).Version -ge "1.0") {
+		$result += Write-VcsStatus;
+	} elseif (((Get-Module posh-git).Version -lt "1.0") -or
+		(Get-Command Write-VcsStatus -ErrorAction SilentlyContinue)) {
 		Write-Host $result -NoNewline;
 		Write-VcsStatus;
 		$result = "";
@@ -183,8 +189,7 @@ function prompt {
 		$promptSuffixEndPadding	-= $promptSuffix.Length;
 	}
 	$result += Write-Prompt $promptSuffix $EBPromptSettings.SuffixColor;
-
-	$padding = " ".PadRight($promptSuffixEndPadding, " ");
+	$result += " ".PadRight($promptSuffixEndPadding, " ");
 	$global:LASTEXITCODE = $origLastExitCode;
-	return $result + $padding;
+	return $result;
 }
